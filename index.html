@@ -2,11 +2,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>Garden GlassHouse Puzzle</title>
+<title>Garden Puzzle Game</title>
 <script type="text/javascript" src="js/jquery-1.4.2.min.js"></script>
 <script type="text/javascript">
-
-    ////globle var////
 	var stateImg = {"void":"images/game/MachinariumItem.jpg","start":"images/game/MachinariumItemStart.jpg","down":"images/game/MachinariumItemDown.jpg","left":"images/game/MachinariumItemLeft.jpg","right":"images/game/MachinariumItemRight.jpg","active":"images/game/MachinariumItemActive.jpg","block":"images/game/MachinariumItemBlock.jpg","up":"images/game/MachinariumItemUp.jpg"};
 	var filterState = ["block","active","start"];
 	var oppositeShow = {"left":"right","right":"left","top":"down","bottom":"up"};
@@ -18,20 +16,15 @@
 	
 	var directionSplitChar = " ";
 	
-	var blockPosition = ["1"+idSplitChar+"3","4"+idSplitChar+"4"]; //the block coordinate position id array.
-	
+	//var blockPosition = ["1"+idSplitChar+"3","4"+idSplitChar+"4"];
+	var blockPosition =[];
 	var stackPath = new Array();
-	///////////////////////////
-	/******
-	* The Basic Principles:
-	* Use the table which td contains a img tag. 
-	* Using Img tag's id represent the coordinate.
-	* Using jquery selection tool to select the exactly Img.
-	
-	***/
+	/////////TEST///////////////
 	
 	
-	/////////////////////////
+	
+	
+	////////TEST///////////////
 	
 	$(function(){
 			   var tab= initTab(blockPosition);
@@ -40,7 +33,13 @@
 			  
 			   $("img").bind("click",itemClick);
 			  	 mouseHand();
-						   
+				
+				$("#btn1").bind("click", {data:[]}, selectGuan);
+				$("#btn2").bind("click", {data:["1"+idSplitChar+"3","4"+idSplitChar+"4"]}, selectGuan);
+				$("#btn3").bind("click", {data:["2"+idSplitChar+"2","2"+idSplitChar+"4"]}, selectGuan);
+				$("#btn4").bind("click", {data:["1"+idSplitChar+"1","1"+idSplitChar+"3","3"+idSplitChar+"1","3"+idSplitChar+"2","3"+idSplitChar+"4","4"+idSplitChar+"4"]}, selectGuan);
+				$("#btn5").bind("click", {data:["0"+idSplitChar+"4","2"+idSplitChar+"3","3"+idSplitChar+"0","4"+idSplitChar+"2"]}, selectGuan);
+				$("#btn6").bind("click", {data:["0"+idSplitChar+"2","0"+idSplitChar+"3","0"+idSplitChar+"4","4"+idSplitChar+"0","4"+idSplitChar+"1"]}, selectGuan);
 			   });
 	
 	
@@ -125,7 +124,7 @@
 			return opp;
 	}
 	
-	//old
+	//废弃
 	function showAroundArrowOpposite(oppositeStr,thisId){
 		var oppArr = oppositeStr.split(directionSplitChar);
 		
@@ -169,7 +168,7 @@
 			}
 			
 	}
-	//let target id string according filterState's filter（not including is true）
+	//将目标id的字符串根据filterState中的过滤（不含有为true）
 	function filter(targetId){
 		
 		var location = getLocation(targetId);
@@ -186,7 +185,7 @@
 		return true;
 		
 	}
-	//compare and get direction
+	//比较得到方向
 	function compareDirection(thisId,targetId){
 			var thisLocation = getLocation(thisId);
 			var thisRow = thisLocation[0];
@@ -206,21 +205,21 @@
 			}
 	}
 	
-	//show arrow
+	//显示箭头
 	function activeArrow(targetId,direction){
 			$("#"+targetId).attr({"src":stateImg[direction],"title":direction});
 	}
 	
-	//init the human interface
+	//初始化界面
 	function initTab(blockPositions){
 		var str = "<table id='tabGame'  cellpadding='0' cellspacing='0' bordercolor='black'>";
 		for (var i =0 ;i<rowLen;i++){
 				str+="<tr>";
 				for(var j =0;j<colLen;j++){
 					if(exist(blockPositions,String(i)+idSplitChar+String(j)) == true){
-						str+="<td><img id='"+i+idSplitChar+j+"' title='block' src='"+stateImg['block']+"' width='100px' height='100px' /></td>";	
+						str+="<td><img id='"+i+idSplitChar+j+"' title='block' src='"+stateImg['block']+"' width='50px' height='50px' /></td>";	
 					}else{
-						str+="<td><img id='"+i+idSplitChar+j+"' title='void' src='"+stateImg['void']+"' width='100px' height='100px' /></td>";
+						str+="<td><img id='"+i+idSplitChar+j+"' title='void' src='"+stateImg['void']+"' width='50px' height='50px' /></td>";
 					}
 				}
 				str+="</tr>";
@@ -247,14 +246,14 @@
 	}
 	
 	
-	//let me go which direction?
+	//向左走，向右走 
 	function goAhead(arrowId,direction){
 		removeArrow();
 		var location = getLocation(arrowId);
 
 		var row = location[0];
 		var col = location[1];
-		currentState = "run";//set state 'run'
+		currentState = "run";//设置状态为运行态
 		switch(direction){
 			case "start":
 				
@@ -340,6 +339,7 @@
 			for (var index in stackPath){
 				changeState(stackPath[index],"start");
 			}
+			stackPath = new Array();
 		}
 		
 	}
@@ -376,10 +376,37 @@
 	}
 	
 	
+	
+	function selectGuan(event){
+		stackPath = new Array();
+		blockPosition =event.data.data;
+		//alert(_blockPosition);
+				
+		 		var tab= initTab(blockPosition);
+				currentState = "start";
+			   $("#divGame").empty().html(tab);
+			  
+			   $("img").bind("click",itemClick);
+			  
+			    mouseHand();
+		
+	}
 </script>
 </head>
 
-<body>
-<div id="divGame" style="background-color:#000;"></div>
+<body bgcolor="#333"> 
+
+<div id="divGame" style="background-color:#000;text-align:center"></div><div style="background-color:#000;text-align:center">
+<input id="btn1" style="background-color:#235" type="button" value="level 1"/>
+<input id="btn2" style="background-color:#235" type="button" value="level 2"/>
+<input id="btn3" style="background-color:#235" type="button" value="level 3"/>
+<input id="btn4" style="background-color:#23F" type="button" value="level 4"/>
+<input id="btn5" style="background-color:#23F" type="button" value="level 5"/>
+<input id="btn6" style="background-color:#23F" type="button" value="level 6"/>
+</div>
+  <div id="footer" >
+   		 <br class="clear" />
+         <p class="fl_left" style="color:#FFF">Copyright &copy; 2010 - All Rights Reserved - 马晨</p>
+  </div>
 </body>
 </html>
