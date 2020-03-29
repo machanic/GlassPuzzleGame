@@ -1,0 +1,385 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Garden GlassHouse Puzzle</title>
+<script type="text/javascript" src="js/jquery-1.4.2.min.js"></script>
+<script type="text/javascript">
+
+    ////globle var////
+	var stateImg = {"void":"images/game/MachinariumItem.jpg","start":"images/game/MachinariumItemStart.jpg","down":"images/game/MachinariumItemDown.jpg","left":"images/game/MachinariumItemLeft.jpg","right":"images/game/MachinariumItemRight.jpg","active":"images/game/MachinariumItemActive.jpg","block":"images/game/MachinariumItemBlock.jpg","up":"images/game/MachinariumItemUp.jpg"};
+	var filterState = ["block","active","start"];
+	var oppositeShow = {"left":"right","right":"left","top":"down","bottom":"up"};
+	var hitDir = {"left":"up down","right":"up down","up":"left right","down":"left right"};
+	var currentState = "start";
+	var rowLen = 5;
+	var colLen = 5;
+	var idSplitChar = 'p';
+	
+	var directionSplitChar = " ";
+	
+	var blockPosition = ["1"+idSplitChar+"3","4"+idSplitChar+"4"]; //the block coordinate position id array.
+	
+	var stackPath = new Array();
+	///////////////////////////
+	/******
+	* The Basic Principles:
+	* Use the table which td contains a img tag. 
+	* Using Img tag's id represent the coordinate.
+	* Using jquery selection tool to select the exactly Img.
+	
+	***/
+	
+	
+	/////////////////////////
+	
+	$(function(){
+			   var tab= initTab(blockPosition);
+
+			   $("#divGame").html(tab);
+			  
+			   $("img").bind("click",itemClick);
+			  	 mouseHand();
+						   
+			   });
+	
+	
+	function itemClick(){
+		
+		
+		var state = $(this).attr("title");
+		var id = $(this).attr("id");
+		switch(state){
+			case "start":
+				if("win" != currentState){
+					goBack();
+					removeArrow();
+				}
+				break;
+			case "void":
+				if("start" == currentState){
+				
+				timing = 0;
+				
+				var tab= initTab(blockPosition);
+				$("#divGame").html(tab);	
+				$("img").bind("click",itemClick);
+				stackPath.push(id);
+				$("#"+id).attr({"src":stateImg["start"],"title":"start"});
+				//alert($("#"+id).attr("src") + "!!!" + stateImg[$("#"+id).attr("title")]);
+				showAroundArrow(id);
+				}
+				break;
+			case "left":
+				timing = 0;
+				
+				goAhead(id,"left");
+				break;
+			case "right":
+				timing = 0;
+				goAhead(id,"right");
+				
+				break;
+			case "up":
+				timing = 0;
+				goAhead(id,"up");
+				break;
+			case "down":
+				timing = 0;
+				goAhead(id,"down");
+				break;	
+		}	
+		mouseHand();
+	}
+	/**
+	function isEdge(positionStr){
+		var location = getLocation(positionStr);
+	
+		var row =location[0];
+		var col =location[1];	
+		
+		var edge = "";
+		if(row == 0){
+			edge += "top"+directionSplitChar;
+		}
+		if(col == 0){
+			edge += "left"+directionSplitChar;	
+		}
+		if(row == rowLen-1){
+			edge += "bottom"+directionSplitChar;	
+		}
+		if(col == colLen-1){
+			edge += "right";
+		}
+		
+		return edge;
+	}
+	function oppositeDirection(edgeStr){
+			var arrEdge = edgeStr.split(directionSplitChar);
+			var opp = "";
+			for (var i =0;i<arrEdge.length;i++){
+				if($.trim(arrEdge[i]) != ""){
+					opp += oppositeShow[arrEdge[i]] + directionSplitChar;	
+				}	
+			}
+			return opp;
+	}
+	
+	//old
+	function showAroundArrowOpposite(oppositeStr,thisId){
+		var oppArr = oppositeStr.split(directionSplitChar);
+		
+		for(var i =0;i<oppArr.length;i++){
+			if("" != oppArr[i]){
+				var location = getLocation(thisId)
+				
+				var row =location[0];
+				var col =location[1];
+				switch(oppArr[i]){
+					case "left":
+						var targetId = String(row)+idSplitChar+String(col-1);
+						activeArrow(targetId,"left");
+						break;
+					case "right":
+						var targetId = String(row)+idSplitChar+String(col+1);
+						activeArrow(targetId,"right");
+						break;
+					case "up":
+						var targetId = String(row-1)+idSplitChar+String(col);
+						activeArrow(targetId,"up");
+						break;
+					case "down":
+						var targetId = String(row+1)+idSplitChar+String(col);
+						activeArrow(targetId,"down");
+						break;
+				}															
+			}				
+		}		
+	}
+	**/
+	function showAroundArrow(thisId){
+			var location = getLocation(thisId);
+			var row =location[0];
+			var col =location[1];
+			var aroundPosition = [String(row)+idSplitChar+String(col+1),String(row)+idSplitChar+String(col-1),String(row+1)+idSplitChar+String(col),String(row-1)+idSplitChar+String(col)];
+			for(var index in aroundPosition){
+				if(true == filter(aroundPosition[index])){
+						activeArrow(aroundPosition[index],compareDirection(thisId,aroundPosition[index]));
+				}	
+			}
+			
+	}
+	//let target id string according filterState's filter（not including is true）
+	function filter(targetId){
+		
+		var location = getLocation(targetId);
+		var row =location[0];
+		var col =location[1];
+		if(row <0 || row>=rowLen || col>=colLen || col<0){
+			return false;	
+		}
+		for(var index in filterState){
+			if(filterState[index] == $("#"+targetId).attr("title")){
+				return false;	
+			}
+		}
+		return true;
+		
+	}
+	//compare and get direction
+	function compareDirection(thisId,targetId){
+			var thisLocation = getLocation(thisId);
+			var thisRow = thisLocation[0];
+			var thisCol = thisLocation[1];
+			var targetLocation = getLocation(targetId);
+			var targetRow = targetLocation[0];
+			var targetCol = targetLocation[1];
+			if(targetRow > thisRow){
+				return "down";	
+			}else if(targetRow < thisRow){
+				return "up";	
+			}
+			if(targetCol>thisCol){
+				return "right";	
+			}else if(targetCol<thisCol){
+				return "left";	
+			}
+	}
+	
+	//show arrow
+	function activeArrow(targetId,direction){
+			$("#"+targetId).attr({"src":stateImg[direction],"title":direction});
+	}
+	
+	//init the human interface
+	function initTab(blockPositions){
+		var str = "<table id='tabGame'  cellpadding='0' cellspacing='0' bordercolor='black'>";
+		for (var i =0 ;i<rowLen;i++){
+				str+="<tr>";
+				for(var j =0;j<colLen;j++){
+					if(exist(blockPositions,String(i)+idSplitChar+String(j)) == true){
+						str+="<td><img id='"+i+idSplitChar+j+"' title='block' src='"+stateImg['block']+"' width='100px' height='100px' /></td>";	
+					}else{
+						str+="<td><img id='"+i+idSplitChar+j+"' title='void' src='"+stateImg['void']+"' width='100px' height='100px' /></td>";
+					}
+				}
+				str+="</tr>";
+		}
+		str+="</table>"; 		
+		return str;
+	}
+	function exist(array,target){
+		for (var i = 0;i<array.length;i++){
+			if(target== array[i]){
+				return true;	
+			}
+		}
+		return false;
+	}
+	function getLocation(targetId){
+
+		var dotIndex = targetId.indexOf(idSplitChar);
+
+		var row =parseInt(targetId.substring(0,dotIndex));
+		var col = parseInt(targetId.substring(dotIndex+1));
+		
+		return [row,col];
+	}
+	
+	
+	//let me go which direction?
+	function goAhead(arrowId,direction){
+		removeArrow();
+		var location = getLocation(arrowId);
+
+		var row = location[0];
+		var col = location[1];
+		currentState = "run";//set state 'run'
+		switch(direction){
+			case "start":
+				
+				break;
+			case "left":
+				while(filter(String(row)+idSplitChar+String(col)) == true){
+						//changeState(String(row)+idSplitChar+String(col),"active");
+						$("#"+String(row)+idSplitChar+String(col)).attr({"src":stateImg["active"],"title":"active"});
+						stackPath.push(String(row)+idSplitChar+String(col));
+						col--;
+						
+				}
+				hit(String(row)+idSplitChar+String(col+1));
+				break;
+			case "right":
+				while(filter(String(row)+idSplitChar+String(col)) == true){
+						//changeState(String(row)+idSplitChar+String(col),"active");
+						$("#"+String(row)+idSplitChar+String(col)).attr({"src":stateImg["active"],"title":"active"});
+						stackPath.push(String(row)+idSplitChar+String(col));
+						col++;
+				}
+				hit(String(row)+idSplitChar+String(col-1));
+				break;
+			case "up":
+				while(filter(String(row)+idSplitChar+String(col)) == true){
+						//changeState(String(row)+idSplitChar+String(col),"active");
+						$("#"+String(row)+idSplitChar+String(col)).attr({"src":stateImg["active"],"title":"active"});
+						stackPath.push(String(row)+idSplitChar+String(col));
+						row--;
+				}
+				hit(String(row+1)+idSplitChar+String(col));
+				break;
+			case "down":
+				while(filter(String(row)+idSplitChar+String(col)) == true){
+						//changeState(String(row)+idSplitChar+String(col),"active");
+						$("#"+String(row)+idSplitChar+String(col)).attr({"src":stateImg["active"],"title":"active"});
+						stackPath.push(String(row)+idSplitChar+String(col));
+						row++;
+				}
+				hit(String(row-1)+idSplitChar+String(col));
+				break;
+		}	
+	}
+	
+	function removeArrow(){
+		$("img[title='left'],img[title='right'],img[title='up'],img[title='down']").attr({"src":stateImg["void"],"title":"void"});
+	}
+	
+	function hit(lastTargetId){
+		
+		var lastLocation = getLocation(lastTargetId);
+		var row = lastLocation[0];
+		var col = lastLocation[1];
+		//alert();
+		var aroundPosition = [String(row)+idSplitChar+String(col+1),String(row)+idSplitChar+String(col-1),String(row+1)+idSplitChar+String(col),String(row-1)+idSplitChar+String(col)];
+		
+		var deadRoad = true;
+		$.each(aroundPosition,function(index,value){
+									 if(filter(value) == true){
+										var dir =  compareDirection(lastTargetId,value);
+										activeArrow(value,dir);
+										deadRoad = false;
+									 }
+									   });
+		if (true == deadRoad){
+			
+			goBack();	
+		}
+		
+	}
+	
+	function goBack(){
+		if(false == checkWin()){
+				
+			while(stackPath.length >0){
+				var id = stackPath.pop();
+				changeState(id,"void");
+			}
+		
+			currentState = "start";
+		}else{
+			
+			for (var index in stackPath){
+				changeState(stackPath[index],"start");
+			}
+		}
+		
+	}
+	
+	
+	function checkWin(){
+		if($("img[title='void']").length == 0){
+			currentState = "win";
+			return true;
+		}
+		return false;
+	}
+	
+	var timing = 0;
+	
+	function changeState(targetId,state){
+		setTimeout("realChange('"+targetId+"','"+state+"')",timing);
+		timing+=50;
+	}
+	function realChange(targetId,state){
+		var img = stateImg[state];
+		$("#"+targetId).attr({"src":img,"title":state});
+		mouseHand();
+	}
+	
+	function mouseHand(){
+		$("#divGame img").css("cursor","");
+		if("start" == currentState){
+			$("img[title='void'],img[title='left'],img[title='right'],img[title='up'],img[title='down']").css("cursor", "pointer");
+		}else if("run" == currentState){
+			$("img[title='left'],img[title='right'],img[title='up'],img[title='down'],img[title='start']").css("cursor", "pointer");
+		}
+	
+	}
+	
+	
+</script>
+</head>
+
+<body>
+<div id="divGame" style="background-color:#000;"></div>
+</body>
+</html>
